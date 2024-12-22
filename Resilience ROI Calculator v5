@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resilience ROI Calculator</title>
+    <style>
+        body {
+            font-family: "LT Wave", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #F0ECE3;
+            color: #0B0B0B;
+        }
+        .container {
+            display: flex;
+            max-width: 1200px;
+            margin: 50px auto;
+            background: #FFFFFF;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar {
+            flex: 1;
+            background: #FFC123;
+            color: #0B0B0B;
+            padding: 20px;
+            border-top-left-radius: 8px;
+            border-bottom-left-radius: 8px;
+        }
+        .main-content {
+            flex: 3;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #0B0B0B;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #0B0B0B;
+        }
+        input {
+            width: 90%;
+            padding: 10px;
+            border: 1px solid #FBC53C;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #FF931F;
+            color: #FFFFFF;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #FFA10A;
+        }
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #F0ECE3;
+            border-radius: 8px;
+            border: 1px solid #FBC53C;
+            color: #0B0B0B;
+        }
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .popup {
+            background: #FFFFFF;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            width: 300px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        .popup input {
+            margin-bottom: 10px;
+        }
+        .branding img {
+            max-width: 300px;
+            display: block;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="branding">
+                <img src="logos/Imagotipo Horizontal Negro (50%).svg" alt="Dapango Logo">
+            </div>
+            <h2>Inputs</h2>
+            <form id="roiForm">
+                <div class="form-group">
+                    <label for="downtimeHours">Annual Downtime Hours</label>
+                    <input type="number" id="downtimeHours" required>
+                </div>
+                <div class="form-group">
+                    <label for="downtimeCost">Downtime Cost per Hour ($)</label>
+                    <input type="number" id="downtimeCost" required>
+                </div>
+                <div class="form-group">
+                    <label for="retentionRate">Customer Retention Rate (%)</label>
+                    <input type="number" id="retentionRate" required>
+                </div>
+                <div class="form-group">
+                    <label for="cyberCost">Cyberattack Recovery Costs ($)</label>
+                    <input type="number" id="cyberCost" required>
+                </div>
+                <div class="form-group">
+                    <label for="numEmployees">Number of Employees</label>
+                    <input type="number" id="numEmployees" required>
+                </div>
+                <div class="form-group">
+                    <label for="hourlyRate">Employee Hourly Rate ($)</label>
+                    <input type="number" id="hourlyRate" required>
+                </div>
+                <div class="form-group">
+                    <label for="complianceCost">Compliance Costs ($)</label>
+                    <input type="number" id="complianceCost" required>
+                </div>
+                <button type="button" id="generateReport">Generate</button>
+                <button type="button" id="resetForm" style="background-color: #0B0B0B; color: #FFFFFF;">Reset</button>
+            </form>
+        </div>
+        <div class="main-content">
+            <h1>Results</h1>
+            <div id="results" class="results" style="display: none;">
+                <h2>Resilience ROI Report</h2>
+                <div id="reportData"></div>
+                <div class="chart-container">
+                    <canvas id="roiChart"></canvas>
+                </div>
+                <button id="sendEmail">Send Report by Email</button>
+                <button id="exportPDF">Export as PDF</button>
+            </div>
+        </div>
+    </div>
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup">
+            <h3>Complete Your Details</h3>
+            <input type="text" id="companyName" placeholder="Company Name" required>
+            <input type="text" id="preparedBy" placeholder="Prepared By" required>
+            <input type="email" id="emailAddress" placeholder="Email Address" required>
+            <button id="confirmDetails">Confirm</button>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script>
+        const roiForm = document.getElementById("roiForm");
+        const popupOverlay = document.getElementById("popupOverlay");
+        const confirmDetails = document.getElementById("confirmDetails");
+        const results = document.getElementById("results");
+
+        document.getElementById("generateReport").addEventListener("click", function () {
+            popupOverlay.style.display = "flex";
+        });
+
+        confirmDetails.addEventListener("click", function () {
+            const companyName = document.getElementById("companyName").value;
+            const preparedBy = document.getElementById("preparedBy").value;
+            const emailAddress = document.getElementById("emailAddress").value;
+
+            if (companyName && preparedBy && emailAddress) {
+                popupOverlay.style.display = "none";
+                generateReport(companyName, preparedBy);
+            } else {
+                alert("Please fill out all fields.");
+            }
+        });
+
+        document.getElementById("resetForm").addEventListener("click", function () {
+            roiForm.reset();
+            results.style.display = "none";
+        });
+
+        function generateReport(companyName, preparedBy) {
+            const downtimeHours = parseFloat(document.getElementById("downtimeHours").value);
+            const downtimeCost = parseFloat(document.getElementById("downtimeCost").value);
+            const retentionRate = parseFloat(document.getElementById("retentionRate").value);
+            const cyberCost = parseFloat(document.getElementById("cyberCost").value);
+            const numEmployees = parseFloat(document.getElementById("numEmployees").value);
+            const hourlyRate = parseFloat(document.getElementById("hourlyRate").value);
+            const complianceCost = parseFloat(document.getElementById("complianceCost").value);
+
+            const downtimeSavings = downtimeHours * downtimeCost * 0.95;
+            const retentionRevenue = 1000 * (100 - retentionRate) * 0.05;
+            const cyberSavings = cyberCost;
+            const productivityGains = numEmployees * hourlyRate * 2000 * 0.05 * 0.5;
+            const complianceSavings = complianceCost * 0.8;
+            const totalROI = downtimeSavings + retentionRevenue + cyberSavings + productivityGains + complianceSavings;
+
+            document.getElementById("reportData").innerHTML = `
+                <p><b>Downtime Savings:</b> $${downtimeSavings.toLocaleString()}</p>
+                <p><b>Retention Revenue:</b> $${retentionRevenue.toLocaleString()}</p>
+                <p><b>Cyber Savings:</b> $${cyberSavings.toLocaleString()}</p>
+                <p><b>Productivity Gains:</b> $${productivityGains.toLocaleString()}</p>
+                <p><b>Compliance Savings:</b> $${complianceSavings.toLocaleString()}</p>
+                <h3><b>Total ROI:</b> $${totalROI.toLocaleString()}</h3>
+            `;
+
+            results.style.display = "block";
+
+            const ctx = document.getElementById("roiChart").getContext("2d");
+            new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: [
+                        "Downtime Savings",
+                        "Retention Revenue",
+                        "Cyber Savings",
+                        "Productivity Gains",
+                        "Compliance Savings"
+                    ],
+                    datasets: [
+                        {
+                            label: "Savings ($)",
+                            data: [
+                                downtimeSavings,
+                                retentionRevenue,
+                                cyberSavings,
+                                productivityGains,
+                                complianceSavings
+                            ],
+                            backgroundColor: [
+                                "rgba(255, 165, 20, 0.7)",
+                                "rgba(255, 193, 35, 0.7)",
+                                "rgba(255, 147, 31, 0.7)",
+                                "rgba(255, 161, 10, 0.7)",
+                                "rgba(240, 236, 227, 0.7)"
+                            ],
+                            borderColor: [
+                                "rgba(255, 165, 20, 1)",
+                                "rgba(255, 193, 35, 1)",
+                                "rgba(255, 147, 31, 1)",
+                                "rgba(255, 161, 10, 1)",
+                                "rgba(240, 236, 227, 1)"
+                            ],
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        document.getElementById("exportPDF").addEventListener("click", async function () {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+
+            pdf.setFontSize(20);
+            pdf.text("Resilience ROI Report", 10, 10);
+
+            pdf.setFontSize(12);
+            pdf.text("Executive Summary:", 10, 20);
+            pdf.text(`Prepared By: ${document.getElementById("preparedBy").value}`, 10, 30);
+            pdf.text(`Company Name: ${document.getElementById("companyName").value}`, 10, 40);
+            pdf.text("Inputs:", 10, 50);
+
+            const inputs = [
+                { label: "Annual Downtime Hours", value: document.getElementById("downtimeHours").value },
+                { label: "Downtime Cost per Hour", value: document.getElementById("downtimeCost").value },
+                { label: "Customer Retention Rate", value: document.getElementById("retentionRate").value },
+                { label: "Cyberattack Recovery Costs", value: document.getElementById("cyberCost").value },
+                { label: "Number of Employees", value: document.getElementById("numEmployees").value },
+                { label: "Employee Hourly Rate", value: document.getElementById("hourlyRate").value },
+                { label: "Compliance Costs", value: document.getElementById("complianceCost").value }
+            ];
+
+            inputs.forEach((input, index) => {
+                pdf.text(`${input.label}: ${input.value}`, 10, 60 + index * 10);
+            });
+
+            pdf.addPage();
+            pdf.text("Results and Chart:", 10, 10);
+
+            const canvas = document.getElementById("roiChart");
+            const imgData = canvas.toDataURL("image/png");
+            pdf.addImage(imgData, "PNG", 10, 20, 180, 100);
+
+            pdf.save("Resilience_ROI_Report.pdf");
+        });
+    </script>
+</body>
+</html>
