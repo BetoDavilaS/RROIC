@@ -110,7 +110,7 @@
     <div class="container">
         <div class="sidebar">
             <div class="branding">
-                <img src="logos/Imagotipo Horizontal Negro (50%).svg" alt="Dapango Logo">
+                <img src="Imagotipo Horizontal Negro (50%).svg" alt="Dapango Logo">
             </div>
             <h2>Inputs</h2>
             <form id="roiForm">
