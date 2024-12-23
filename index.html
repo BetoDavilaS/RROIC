@@ -104,6 +104,22 @@
             display: block;
             margin: 20px auto;
         }
+        .tooltip {
+            position: absolute;
+            background: #F0ECE3;
+            color: #0B0B0B;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            border: 1px solid #FBC53C;
+            display: none;
+            z-index: 10;
+        }
+        .form-group:hover .tooltip {
+            display: block;
+        }
+
     </style>
 </head>
 <body>
@@ -117,30 +133,37 @@
                 <div class="form-group">
                     <label for="downtimeHours">Annual Downtime Hours</label>
                     <input type="number" id="downtimeHours" required>
+                    <div class="tooltip">The total number of hours your IT systems are down annually, causing operational disruptions.</div>
                 </div>
                 <div class="form-group">
                     <label for="downtimeCost">Downtime Cost per Hour ($)</label>
                     <input type="number" id="downtimeCost" required>
+                    <div class="tooltip">The financial loss incurred per hour of downtime, including lost revenue and operational costs.</div>
                 </div>
                 <div class="form-group">
                     <label for="retentionRate">Customer Retention Rate (%)</label>
                     <input type="number" id="retentionRate" required>
+                    <div class="tooltip">The percentage of customers retained each year. A lower rate indicates higher churn.</div>
                 </div>
                 <div class="form-group">
                     <label for="cyberCost">Cyberattack Recovery Costs ($)</label>
                     <input type="number" id="cyberCost" required>
+                    <div class="tooltip">The estimated cost of recovering from a cyberattack, including fines and remediation efforts.</div>
                 </div>
                 <div class="form-group">
                     <label for="numEmployees">Number of Employees</label>
                     <input type="number" id="numEmployees" required>
+                    <div class="tooltip">The total number of employees affected by IT inefficiencies or downtime.</div>
                 </div>
                 <div class="form-group">
                     <label for="hourlyRate">Employee Hourly Rate ($)</label>
                     <input type="number" id="hourlyRate" required>
+                    <div class="tooltip">The average hourly rate of your employees.</div>
                 </div>
                 <div class="form-group">
                     <label for="complianceCost">Compliance Costs ($)</label>
                     <input type="number" id="complianceCost" required>
+                    <div class="tooltip">Annual costs associated with maintaining compliance or addressing compliance failures.</div>
                 </div>
                 <button type="button" id="generateReport">Generate</button>
                 <button type="button" id="resetForm" style="background-color: #0B0B0B; color: #FFFFFF;">Reset</button>
